@@ -13,12 +13,11 @@ class RegistrationsController < ApplicationController
 
   def options
     user = User.new(email: params[:email])
-    user.validate
 
     # A signed-out visitor must never be able to attach a new passkey to an
     # existing account, or they could take it over. Adding passkeys to an
     # existing account should require being signed in.
-    if user.errors.any?
+    unless user.valid?
       return render json: { error: user.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
 
