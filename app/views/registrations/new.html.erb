@@ -1,0 +1,21 @@
+<% content_for :title, "Create account" %>
+
+<h1>Create account</h1>
+
+<%= tag.form data: { controller: "passkey", passkey_mode_value: "register",
+                     passkey_options_url_value: options_registration_path,
+                     passkey_submit_url_value: registration_path,
+                     action: "submit->passkey#run" } do %>
+  <p>
+    <label for="email">Email</label><br>
+    <input type="email" id="email" required autocomplete="username webauthn" data-passkey-target="email">
+  </p>
+  <p>
+    <label for="nickname">Passkey name (optional)</label><br>
+    <input type="text" id="nickname" placeholder="e.g. MacBook" data-passkey-target="nickname">
+  </p>
+  <p><button type="submit" data-passkey-target="button">Create account with a passkey</button></p>
+  <p role="alert" data-passkey-target="error" style="color: #b00020"></p>
+<% end %>
+
+<p>Already have an account? <%= link_to "Sign in", new_session_path %></p>

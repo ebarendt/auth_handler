@@ -1,0 +1,11 @@
+<h1>Signed in</h1>
+<p>Welcome, <%= current_user.email %>.</p>
+
+<h2>Your passkeys</h2>
+<ul>
+  <% current_user.credentials.each do |credential| %>
+    <li><%= credential.nickname.presence || "Unnamed passkey" %> — added <%= l credential.created_at.to_date, format: :long %></li>
+  <% end %>
+</ul>
+
+<%= button_to "Sign out", session_path, method: :delete %>

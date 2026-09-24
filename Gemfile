@@ -64,3 +64,9 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+# Rails 8.1.3.1 calls JSON.parse(json, options) positionally, which json 3.x removed.
+# Drop this pin once Rails ships a fix.
+gem "json", "< 3"
+
+gem "webauthn", "~> 3.4"

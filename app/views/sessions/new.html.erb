@@ -1,0 +1,13 @@
+<% content_for :title, "Sign in" %>
+
+<h1>Sign in</h1>
+
+<%= tag.form data: { controller: "passkey", passkey_mode_value: "authenticate",
+                     passkey_options_url_value: options_session_path,
+                     passkey_submit_url_value: session_path,
+                     action: "submit->passkey#run" } do %>
+  <p><button type="submit" data-passkey-target="button">Sign in with a passkey</button></p>
+  <p role="alert" data-passkey-target="error" style="color: #b00020"></p>
+<% end %>
+
+<p>New here? <%= link_to "Create an account", new_registration_path %></p>

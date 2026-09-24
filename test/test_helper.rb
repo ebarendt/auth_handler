@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require "webauthn/fake_client"
 
 module ActiveSupport
   class TestCase
