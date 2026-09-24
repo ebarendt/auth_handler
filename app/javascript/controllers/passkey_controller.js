@@ -11,7 +11,7 @@ import { Controller } from "@hotwired/stimulus"
 // toJSON() convert to and from the ArrayBuffers the raw API wants.
 export default class extends Controller {
   static targets = ["email", "nickname", "error", "button"]
-  static values = { optionsUrl: String, submitUrl: String, mode: String }
+  static values = { optionsUrl: String, submitUrl: String, submitMethod: { type: String, default: "POST" }, mode: String }
 
   connect() {
     if (!window.PublicKeyCredential || !PublicKeyCredential.parseCreationOptionsFromJSON) {
@@ -26,13 +26,13 @@ export default class extends Controller {
     this.buttonTarget.disabled = true
 
     try {
-      const options = await this.post(this.optionsUrlValue, this.optionsPayload())
+      const options = await this.request("POST", this.optionsUrlValue, this.optionsPayload())
 
       const credential = this.modeValue === "register"
         ? await navigator.credentials.create({ publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options) })
         : await navigator.credentials.get({ publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(options) })
 
-      const result = await this.post(this.submitUrlValue, { credential: credential.toJSON(), ...this.extraPayload() })
+      const result = await this.request(this.submitMethodValue, this.submitUrlValue, { credential: credential.toJSON(), ...this.extraPayload() })
       window.Turbo.visit(result.redirect_to)
     } catch (error) {
       // NotAllowedError = user cancelled or the prompt timed out.
@@ -49,9 +49,9 @@ export default class extends Controller {
     return this.hasNicknameTarget ? { nickname: this.nicknameTarget.value } : {}
   }
 
-  async post(url, body) {
+  async request(method, url, body) {
     const response = await fetch(url, {
-      method: "POST",
+      method,
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",

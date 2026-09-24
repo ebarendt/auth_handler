@@ -6,6 +6,8 @@
 #   3. create: browser sends back the new PUBLIC key + a signature over our
 #      challenge. We verify it and store the public key.
 class RegistrationsController < ApplicationController
+  include PasskeyCreation
+
   allow_unauthenticated_access
 
   def new
@@ -21,10 +23,7 @@ class RegistrationsController < ApplicationController
       return render json: { error: user.errors.full_messages.to_sentence }, status: :unprocessable_content
     end
 
-    options = WebAuthn::Credential.options_for_create(
-      user: { id: user.webauthn_id, name: user.email },
-      authenticator_selection: { resident_key: "required", user_verification: "required" }
-    )
+    options = creation_options_for(user)
 
     # Keep the challenge server-side; the client can't be trusted to hand back
     # the right one. Nothing is written to the database until verification.
@@ -41,18 +40,12 @@ class RegistrationsController < ApplicationController
     pending = session.delete(:registration) or
       return render json: { error: "No registration in progress" }, status: :unprocessable_content
 
-    passkey = WebAuthn::Credential.from_create(params.require(:credential))
-    passkey.verify(pending["challenge"], user_verification: true)
+    passkey = verified_passkey(pending["challenge"])
 
     user = User.new(email: pending["email"], webauthn_id: pending["webauthn_id"])
     User.transaction do
       user.save!
-      user.credentials.create!(
-        external_id: passkey.id,
-        public_key: passkey.public_key,
-        sign_count: passkey.sign_count,
-        nickname: params[:nickname].presence
-      )
+      user.credentials.create!(credential_attributes_for(passkey))
     end
 
     sign_in user

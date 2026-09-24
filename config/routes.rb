@@ -12,5 +12,9 @@ Rails.application.routes.draw do
     post :options, on: :collection
   end
 
+  resources :passkey_resets, param: :token, only: %i[ new create edit update ] do
+    post :options, on: :member
+  end
+
   root "home#show"
 end

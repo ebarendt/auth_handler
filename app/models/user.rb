@@ -1,6 +1,10 @@
 class User < ApplicationRecord
   has_many :credentials, dependent: :destroy
 
+  generates_token_for :passkey_reset, expires_in: 15.minutes do
+    credentials.maximum(:id)
+  end
+
   normalizes :email, with: ->(email) { email.strip.downcase }
 
   validates :email, presence: true, uniqueness: true,

@@ -1,0 +1,15 @@
+<% content_for :title, "Reset passkey" %>
+
+<h1>Lost your passkey?</h1>
+
+<p>Enter your email and we'll send you a link to set up a new one.</p>
+
+<%= form_with url: passkey_resets_path do |form| %>
+  <p>
+    <%= form.label :email %><br>
+    <%= form.email_field :email, required: true, autocomplete: "email" %>
+  </p>
+  <p><%= form.submit "Email me a reset link" %></p>
+<% end %>
+
+<p><%= link_to "Back to sign in", new_session_path %></p>

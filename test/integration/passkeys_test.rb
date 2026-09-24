@@ -3,12 +3,6 @@ require "test_helper"
 # Uses WebAuthn::FakeClient to play the role of browser + authenticator, so
 # these tests exercise the real challenge/signature verification end to end.
 class PasskeysTest < ActionDispatch::IntegrationTest
-  ORIGIN = "http://localhost:3000"
-
-  setup do
-    @client = WebAuthn::FakeClient.new(ORIGIN)
-  end
-
   test "register, sign out, then sign in with the passkey" do
     register "eric@example.com"
     user = User.find_by!(email: "eric@example.com")
@@ -127,15 +121,6 @@ class PasskeysTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def register(email)
-      post options_registration_path, params: { email: email }, as: :json
-      assert_response :success
-      credential = @client.create(challenge: response.parsed_body["challenge"], user_verified: true)
-
-      post registration_path, params: { credential: credential, nickname: "Test key" }, as: :json
-      assert_response :success
-    end
-
     def sign_in_with_passkey(user)
       post options_session_path, as: :json
       assert_response :success
@@ -143,15 +128,5 @@ class PasskeysTest < ActionDispatch::IntegrationTest
       post session_path, params: { credential: assertion_for(user, response.parsed_body["challenge"]) }, as: :json
       assert_response :success
       get root_path
-    end
-
-    def assertion_for(user, challenge)
-      @client.get(challenge: challenge, user_verified: true, user_handle: raw_handle(user))
-    end
-
-    # The authenticator stores the raw bytes of the id we sent (base64url-decoded
-    # by the browser), and returns those bytes as the userHandle.
-    def raw_handle(user)
-      WebAuthn.standard_encoder.decode(user.webauthn_id)
     end
 end
