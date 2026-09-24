@@ -114,6 +114,13 @@ class PasskeysTest < ActionDispatch::IntegrationTest
     assert_nil session[:user_id]
   end
 
+  test "passkey pages force a full page load so passkey managers can hook in" do
+    [ new_session_path, new_registration_path ].each do |path|
+      get path
+      assert_select "meta[name=turbo-visit-control][content=reload]"
+    end
+  end
+
   test "protected pages redirect to sign in" do
     get root_path
     assert_redirected_to new_session_path
