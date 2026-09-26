@@ -65,8 +65,31 @@ so they exercise real challenge and signature verification without a browser.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `WEBAUTHN_ORIGINS` | `http://localhost:3000` | Comma-separated origins the browser may report. Must match exactly (scheme, host and port). |
-| `WEBAUTHN_RP_ID` | host of the origin | The relying party ID, a domain. Set it explicitly in production. |
+| `WEBAUTHN_ORIGINS` | `http://localhost:3000` | Comma-separated origins the browser may report. Must match exactly (scheme, host and port): `http://localhost` does not match `http://localhost:3000`. |
+| `WEBAUTHN_RP_ID` | hostname of the origin | The relying party ID, a domain. The default only works when exactly one origin is configured. With several origins you must set this, or verification fails with `RpIdVerificationError`. Set it explicitly in production. |
+
+The RP ID is just a hostname. It has no port or scheme, and it is what scopes a
+passkey: `localhost:3000` and `localhost:3001` both have the RP ID `localhost`.
+
+## Running more than one local app
+
+Two local apps that both use `localhost` share one pool of passkeys, whatever
+their ports. Both apps' passkeys show up in the picker on either sign-in page,
+and picking the other app's passkey fails with a generic "could not be
+verified" because this app has never seen that credential.
+
+Give each app its own `.localhost` hostname so their RP IDs differ and the
+authenticator only offers the matching passkeys:
+
+```sh
+WEBAUTHN_ORIGINS=http://auth-handler.localhost:3000 bin/rails server
+```
+
+then browse to `http://auth-handler.localhost:3000`. Browsers resolve
+`*.localhost` to loopback and Rails allows `.localhost` hosts in development.
+Passkeys are bound to the hostname they were registered on, so anything
+registered on plain `localhost` will not appear here and you will need to
+register again.
 
 ## Gotchas found along the way
 
